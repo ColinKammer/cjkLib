@@ -1,0 +1,5 @@
+.vs/*
+.vscode/*
+
+TbsLib/generated/*
+TbsCompiler/test/*.h

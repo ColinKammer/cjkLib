@@ -1,0 +1,22 @@
+enum TestEnum {
+    opt1;
+    opt2;
+    opt3;
+    xyzasda;
+}
+
+enum Enum2 {
+    stsdas;
+    tst2;
+}
+
+struct T1 {
+    T2 otherStruckt;
+    TestEnum enumTest;
+    UINT8[100] buffer;
+}
+
+struct T2 {
+    INT64 i;
+    UINT32 j;
+}

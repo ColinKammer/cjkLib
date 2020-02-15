@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "TbsCompiler": {
+      "commandName": "Project",
+      "commandLineArgs": "..\\..\\..\\test\\test.tbs -cpp -cs -public -namespace TbsTest"
+    }
+  }
+}
