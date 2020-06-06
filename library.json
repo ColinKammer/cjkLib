@@ -1,0 +1,9 @@
+{
+    "name": "cjkLib_logicUtil",
+    "version": "0.0.1",
+    "build": {
+        "srcDir": "logicUtil",
+        "includeDir": "logicUtil"
+
+    }
+}
