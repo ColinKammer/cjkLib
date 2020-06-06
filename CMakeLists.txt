@@ -8,6 +8,7 @@ aux_source_directory(_private_tests_cpp TstSrcFiles)
 
 SET(SrcFiles
 	logicUtil/sequencer.cpp
+	logicUtil/edgeDetector.cpp
 )
 
 SET(SrcHeaderFolders

@@ -39,11 +39,11 @@ int tst_sequencer()
 
 	seq.m_sequence = "123";
 
-	seq.ExecuteStep();
-	seq.ExecuteStep();
-	seq.ExecuteStep();
-	seq.ExecuteStep();
-	seq.ExecuteStep();
+	incrementIfFalse(errors, doCheck("Step 0 retVal", seq.ExecuteStep() == '1', "Unexpected Result"));
+	incrementIfFalse(errors, doCheck("Step 1 retVal", seq.ExecuteStep() == '2', "Unexpected Result"));
+	incrementIfFalse(errors, doCheck("Step 2 retVal", seq.ExecuteStep() == '3', "Unexpected Result"));
+	incrementIfFalse(errors, doCheck("Step 3 retVal", seq.ExecuteStep() == '1', "Unexpected Result"));
+	incrementIfFalse(errors, doCheck("Step 4 retVal", seq.ExecuteStep() == '2', "Unexpected Result"));
 
 	return errors;
 }

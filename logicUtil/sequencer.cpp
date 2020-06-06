@@ -8,21 +8,26 @@ namespace cjk {
 
 	}
 
-	void Sequencer::ExecuteStep()
+	char Sequencer::ExecuteStep()
 	{
 		auto currentLenth = m_sequence.length();
 		if (currentLenth == 0)
 		{
 			//empty sequence => nothing to do
-			return;
+			return '\0';
 		}
 
 		if (m_nextStep >= currentLenth)
 		{
 			m_nextStep = 0;
 		}
-		m_stepExecutor(m_sequence[m_nextStep]);
-
+		auto currentStepValue = m_sequence[m_nextStep];
 		m_nextStep++;
+
+		if (m_stepExecutor != nullptr)
+		{
+			m_stepExecutor(currentStepValue);
+		}
+		return currentStepValue;
 	}
 }

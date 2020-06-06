@@ -13,9 +13,9 @@ namespace cjk {
 	public:
 		SequenceDescription m_sequence = ""; //changes will take effect when the next step is executed
 
-		Sequencer(const StepExecutor stepExecutor);
+		Sequencer(const StepExecutor stepExecutor = nullptr);
 
-		void ExecuteStep();
+		char ExecuteStep(); //returns the char sent to callback (for non sychron oriented programming)
 
 	private:
 		const StepExecutor m_stepExecutor;

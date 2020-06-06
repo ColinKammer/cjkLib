@@ -5,4 +5,5 @@
 #define TESTLIST(F) \
   F(cmdParser) \
   F(stringUtil) \
-  F(sequencer)
+  F(sequencer) \
+  F(edgeDetector)
