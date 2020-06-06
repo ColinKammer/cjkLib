@@ -1,9 +1,9 @@
 #pragma once
 
-#include "cppCjkLib/public/include/test_helper.h"
+#include "test_helper.h"
+#include "FIRFilter.h"
 #include <iostream>
 
-#include "../../MRR Execution/FIRFilter.h"
 
 #define MAXERROR 0.001
 #define ABOUT_EQUALS(A,B) ( ((A-B) < MAXERROR) && ((B-A) < MAXERROR) )
