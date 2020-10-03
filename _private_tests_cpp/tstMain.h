@@ -6,4 +6,5 @@
   F(cmdParser) \
   F(stringUtil) \
   F(sequencer) \
-  F(edgeDetector)
+  F(edgeDetector) \
+  F(schmittTrigger)
