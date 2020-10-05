@@ -7,4 +7,5 @@
   F(stringUtil) \
   F(sequencer) \
   F(edgeDetector) \
-  F(schmittTrigger)
+  F(schmittTrigger) \
+  F(callDivider)
