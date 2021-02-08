@@ -8,4 +8,5 @@
   F(sequencer) \
   F(edgeDetector) \
   F(schmittTrigger) \
-  F(callDivider)
+  F(callDivider) \
+  F(bimap)

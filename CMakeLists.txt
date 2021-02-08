@@ -17,6 +17,7 @@ SET(SrcHeaderFolders
 	dsp
 	string
 	testing
+	containers
 )
 
 
