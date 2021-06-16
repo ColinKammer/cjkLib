@@ -15,8 +15,8 @@ SET(SrcHeaderFolders
 	logicUtil
 	commandLine
 	dsp
-	string
 	testing
+	util
 )
 
 

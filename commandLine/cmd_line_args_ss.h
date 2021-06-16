@@ -33,7 +33,7 @@ namespace cjk
         {
             KeyValuePair* lastKVPair = nullptr;
 
-            for (auto arg : rawArgs)
+            for (auto& arg : rawArgs)
             {
                 if (arg.length() == 0) continue; //ignore empty elements
 

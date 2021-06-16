@@ -7,7 +7,6 @@
 int tst_schmittTrigger()
 {
 	int errors = 0;
-	double outputSample;
 
 	auto schmittTrigger = SchmittTrigger<int32_t>(10, 20, false);
 
