@@ -49,5 +49,9 @@ int tst_cmdParserSS()
 	incrementIfFalse(errors, doCheck("tst", (unnamed.at(2) == "lose2"), "Unexpected Result"));
 	incrementIfFalse(errors, doCheck("tst", (unnamed.at(3) == "lose3"), "Unexpected Result"));
 
+
+	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNthUnnamedArg(1, "default") == "lose1"), "Unexpected Result"));
+	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNthUnnamedArg(4, "default") == "default"), "Unexpected Result"));
+
 	return errors;
 }
