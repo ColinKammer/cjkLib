@@ -100,5 +100,10 @@ namespace cjk
         {
             return m_unnamedArgs;
         }
+
+        std::string GetNthUnnamedArg(size_t argIndex, const std::string& defaultValue = "")
+        {
+            return (argIndex < m_unnamedArgs.size()) ? m_unnamedArgs[argIndex] : defaultValue;
+        }
     };
 }
