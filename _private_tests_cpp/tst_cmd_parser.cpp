@@ -53,14 +53,14 @@ int tst_cmdParserSS()
         incrementIfFalse(errors, doCheck("unnamed_0", (unnamed.at(0) == "call.exe"), "Unexpected Result"));
         incrementIfFalse(errors, doCheck("unnamed_1", (unnamed.at(1) == "unnamed"), "Unexpected Result"));
     }
-    {
-        auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1 unnamed anotherUnnamed");
-        incrementIfFalse(errors, doCheck("parse failed, because to many unnamed", (parseErr != nullptr), "Unexpected Result"));
-    }
-    {
-        auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1");
-        incrementIfFalse(errors, doCheck("parse failed, because to few unnamed", (parseErr != nullptr), "Unexpected Result"));
-    }
+    //{
+    //    auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1 unnamed anotherUnnamed");
+    //    incrementIfFalse(errors, doCheck("parse failed, because to many unnamed", (parseErr != nullptr), "Unexpected Result"));
+    //}
+    //{
+    //    auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1");
+    //    incrementIfFalse(errors, doCheck("parse failed, because to few unnamed", (parseErr != nullptr), "Unexpected Result"));
+    //}
 
     return errors;
 }

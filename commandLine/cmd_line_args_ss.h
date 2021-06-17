@@ -106,14 +106,6 @@ namespace cjk
             return nullptr;
         }
 
-        void ResetvaluePtrs()
-        {
-            for (auto& e : m_flags) *(e.m_value) = false;
-            for (auto& e : m_params) e.m_value->clear();
-            for (auto& e : m_namedLists) e.m_value->clear();
-            m_unnamedList->clear();
-        }
-
     public:
 
         void ConfigureFlag(const char* name, bool* valuePtr)
@@ -140,7 +132,6 @@ namespace cjk
 
         [[nodiscard]] const char* Parse(const std::vector<std::string>& rawArgs)
         {
-            ResetvaluePtrs();
             for (auto& s : rawArgs)
             {
                 auto res = ParseSection(s.c_str());
@@ -158,7 +149,6 @@ namespace cjk
 
         [[nodiscard]] const char* Parse(int argc, const char* argv[])
         {
-            ResetvaluePtrs();
             for (int i = 0; i < argc; i++)
             {
                 auto res = ParseSection(argv[i]);
