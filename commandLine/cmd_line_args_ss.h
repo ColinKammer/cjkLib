@@ -12,9 +12,10 @@
 namespace cjk
 {
     class CmdLineArgsSS {
-    private:
+    public:
         using StringList = std::vector<std::string>;
 
+    private:
         struct FlagConfig
         {
             std::string m_name;
@@ -70,7 +71,7 @@ namespace cjk
         [[nodiscard]] const char* ParseSection(const char* spacelessSection)
         {
             if (spacelessSection == nullptr) return nullptr; //ignore empty sections
-            if (spacelessSection[0] == NULL) return nullptr; //ignore empty sections
+            if (spacelessSection[0] == '\0') return nullptr; //ignore empty sections
 
             bool startsWithDash = (spacelessSection[0] == '-') || (spacelessSection[0] == '/');
             if (startsWithDash)
