@@ -52,8 +52,7 @@ namespace cjk
             if (spacelessSection == nullptr) return nullptr; //ignore empty sections
             if (spacelessSection[0] == '\0') return nullptr; //ignore empty sections
 
-            bool startsWithDash = (spacelessSection[0] == '-') || (spacelessSection[0] == '/');
-            if (startsWithDash)
+            if (spacelessSection[0] == '-')
             {
                 const char* name = &spacelessSection[1];
                 auto flagItter = std::find_if(m_flags.begin(), m_flags.end(), [&](const auto& elem) {return elem.m_name == name; });
