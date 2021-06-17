@@ -11,99 +11,190 @@
 
 namespace cjk
 {
-    class CmdLineArgsSS
-    {
+    class CmdLineArgsSS {
     private:
-        class KeyValuePair
+        using StringList = std::vector<std::string>;
+
+        struct FlagConfig
         {
-        public:
-            std::string m_key;
+            std::string m_name;
+            bool m_value;
+
+            FlagConfig(const char* name)
+                : m_name(name)
+                , m_value(false)
+            { }
+        };
+
+        struct ParamConfig
+        {
+            std::string m_name;
             std::string m_value;
 
-            KeyValuePair(const std::string& key)
-                : m_key(key)
+            ParamConfig(const char* name)
+                : m_name(name)
                 , m_value()
             { }
         };
 
-        std::vector<KeyValuePair> m_namedArgs;
-        std::vector<std::string> m_unnamedArgs;
-
-        void parseArgs(const std::vector<std::string>& rawArgs)
+        struct ListConfig
         {
-            KeyValuePair* lastKVPair = nullptr;
+            std::string m_name;
+            StringList m_value;
 
-            for (auto& arg : rawArgs)
+            ListConfig(const char* name)
+                : m_name(name)
+                , m_value()
+            { }
+        };
+
+    private:
+        std::vector<FlagConfig> m_flags;
+        std::vector<ParamConfig> m_params;
+        std::vector<ListConfig> m_namedLists;
+        StringList m_unnamedList;
+        size_t m_unnamedList_minimum = 0; //accept both: with and without call by default
+        size_t m_unnamedList_maximum = 1; //accept both: with and without call by default
+
+    private:
+        enum class ParseState
+        {
+            NoContext,
+            ParamContext,
+            ListContext
+        };
+        ParseState m_parseState = ParseState::NoContext;
+        decltype(m_params)::iterator m_selectedParam;
+        decltype(m_namedLists)::iterator m_selectedlist;
+
+        [[nodiscard]] const char* ParseSection(const char* spacelessSection)
+        {
+            if (spacelessSection == nullptr) return nullptr; //ignore empty sections
+            if (spacelessSection[0] == NULL) return nullptr; //ignore empty sections
+
+            bool startsWithDash = (spacelessSection[0] == '-') || (spacelessSection[0] == '/');
+            if (startsWithDash)
             {
-                if (arg.length() == 0) continue; //ignore empty elements
+                const char* name = &spacelessSection[1];
+                auto flagItter = std::find_if(m_flags.begin(), m_flags.end(), [&](const auto& elem) {return elem.m_name == name; });
+                auto paramItter = std::find_if(m_params.begin(), m_params.end(), [&](const auto& elem) {return elem.m_name == name; });
+                auto listItter = std::find_if(m_namedLists.begin(), m_namedLists.end(), [&](const auto& elem) {return elem.m_name == name; });
 
-                if ((arg.at(0) == '-') || (arg.at(0) == ('/')))
+                if (flagItter != m_flags.end())
                 {
-                    auto currentSwitch = arg.substr(1); //remove leading dash
-                    m_namedArgs.emplace_back(currentSwitch);
-                    lastKVPair = &m_namedArgs.back();
+                    flagItter->m_value = true;
+                    m_parseState = ParseState::NoContext;
+                }
+                else if (paramItter != m_params.end())
+                {
+                    m_selectedParam = paramItter;
+                    m_parseState = ParseState::ParamContext;
+                }
+                else if (listItter != m_namedLists.end())
+                {
+                    m_selectedlist = listItter;
+                    m_parseState = ParseState::ListContext;
                 }
                 else
                 {
-                    if (lastKVPair != nullptr)
-                    {
-                        lastKVPair->m_value = arg;
-                        lastKVPair = nullptr;
-                    }
-                    else
-                    {
-                        m_unnamedArgs.emplace_back(arg);
-                    }
+                    return "Unknown Flag";
                 }
             }
-        };
+            else
+            {
+                switch (m_parseState)
+                {
+                case ParseState::NoContext:
+                    m_unnamedList.emplace_back(spacelessSection);
+                    break;
+                case ParseState::ParamContext:
+                    m_selectedParam->m_value = spacelessSection;
+                    m_parseState = ParseState::NoContext;
+                    break;
+                case ParseState::ListContext:
+                    m_selectedlist->m_value.emplace_back(spacelessSection);
+                    break;
+                }
+            }
+
+            return nullptr;
+        }
+
+        [[nodiscard]] const char* ValidateUnnamedList()
+        {
+            if (m_unnamedList.size() > m_unnamedList_maximum) return "UnnamedList is too long";
+            if (m_unnamedList.size() < m_unnamedList_minimum) return "UnnamedList is too short";
+            return nullptr;
+        }
 
     public:
-        CmdLineArgsSS(const std::vector<std::string>& rawArgs)
+        CmdLineArgsSS(size_t reservedFlags, size_t reservedParams, size_t reservedLists)
         {
-            parseArgs(rawArgs);
-        };
+            //failing to reserve enough during construcion will result in invalidated refernces making the result useless
+            m_flags.reserve(reservedFlags);
+            m_params.reserve(reservedParams);
+            m_namedLists.reserve(reservedLists);
+        }
 
-#ifdef CMD_LINE_ARGS_IMPL_SPLITTING
-        CmdLineArgsSS(const std::string args)
+        bool& ConfigureFlag(const char* name)
         {
-            parseArgs(split(args, ' '));
+            m_flags.emplace_back(name);
+            return m_flags.back().m_value;
+        }
+
+        std::string& ConfigureParam(const char* name)
+        {
+            m_params.emplace_back(name);
+            return m_params.back().m_value;
+        }
+
+        StringList& ConfigureNamedList(const char* name)
+        {
+            m_namedLists.emplace_back(name);
+            return m_namedLists.back().m_value;
+        }
+
+        StringList& ConfigureUnnamedList(size_t minimumLength, size_t maximumLength)
+        {
+            m_unnamedList_minimum = minimumLength;
+            m_unnamedList_maximum = maximumLength;
+            return m_unnamedList;
+        }
+
+        [[nodiscard]] const char* Parse(const std::vector<std::string>& rawArgs)
+        {
+            for (auto& s : rawArgs)
+            {
+                auto res = ParseSection(s.c_str());
+                if (res != nullptr)
+                    return res;
+            }
+            return ValidateUnnamedList();
+        };
+#ifdef CMD_LINE_ARGS_IMPL_SPLITTING
+        [[nodiscard]] const char* Parse(const std::string args)
+        {
+            return Parse(split(args, ' '));
         };
 #endif
 
-        CmdLineArgsSS(int argc, const char* argv[])
+        [[nodiscard]] const char* Parse(int argc, const char* argv[])
         {
-            std::vector<std::string> rawArgs;
-            rawArgs.reserve(argc);
-
             for (int i = 0; i < argc; i++)
             {
-                rawArgs.push_back(argv[i]);
+                auto res = ParseSection(argv[i]);
+                if (res != nullptr)
+                    return res;
             }
-
-            parseArgs(rawArgs);
+            return ValidateUnnamedList();
         };
 
-        bool HasSwitch(const std::string& argName)
+        void Reset()
         {
-            auto findResult = std::find_if(m_namedArgs.begin(), m_namedArgs.end(), [=](const KeyValuePair& kvp) { return kvp.m_key == argName; });
-            return findResult != m_namedArgs.end();
-        };
-
-        std::string GetNamedArg(const std::string& argName, const std::string& defaultValue = "")
-        {
-            auto findResult = std::find_if(m_namedArgs.begin(), m_namedArgs.end(), [=](const KeyValuePair& kvp) { return kvp.m_key == argName; });
-            return (findResult != m_namedArgs.end()) ? findResult->m_value : defaultValue;
-        }
-
-        std::vector<std::string> GetUnnamedArgs()
-        {
-            return m_unnamedArgs;
-        }
-
-        std::string GetNthUnnamedArg(size_t argIndex, const std::string& defaultValue = "")
-        {
-            return (argIndex < m_unnamedArgs.size()) ? m_unnamedArgs[argIndex] : defaultValue;
+            for (auto& e : m_flags) e.m_value = false;
+            for (auto& e : m_params) e.m_value.clear();
+            for (auto& e : m_namedLists) e.m_value.clear();
+            m_unnamedList.clear();
         }
     };
 }

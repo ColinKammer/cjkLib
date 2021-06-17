@@ -32,26 +32,39 @@ int tst_cmdParserSS()
 {
 	int errors = 0;
 
-	auto tstArgs = CmdLineArgsSS("call.exe lose1 -1 eins -noVal -2 zwei lose2 lose3");
+	CmdLineArgsSS args{ 2,1,1 };
+	auto& flag1 = args.ConfigureFlag("flag1");
+	auto& flag2 = args.ConfigureFlag("flag2");
+	auto& param1 = args.ConfigureParam("param1");
+	auto& list1 = args.ConfigureNamedList("list1");
+	auto& unnamed = args.ConfigureUnnamedList(2, 2);
 
-	incrementIfFalse(errors, doCheck("has Switch positive", (tstArgs.HasSwitch("noVal") == true), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("has Switch negative", (tstArgs.HasSwitch("notPresent") == false), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNamedArg("1") == "eins"), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNamedArg("2") == "zwei"), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNamedArg("noVal", "default") == ""), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNamedArg("notPresent") == ""), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNamedArg("notPresent", "default") == "default"), "Unexpected Result"));
+	{
+		auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1 unnamed");
+		incrementIfFalse(errors, doCheck("parse sucessfull", (parseErr == nullptr), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("has Switch positive", (flag1 == true), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("has Switch negative", (flag2 == false), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("param", (param1 == "p1"), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("list1_size", (list1.size() == 3), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("list1_0", (list1.at(0) == "1"), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("list1_1", (list1.at(1) == "2"), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("list1_2", (list1.at(2) == "3"), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("unnamed_size", (unnamed.size() == 2), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("unnamed_0", (unnamed.at(0) == "call.exe"), "Unexpected Result"));
+		incrementIfFalse(errors, doCheck("unnamed_1", (unnamed.at(1) == "unnamed"), "Unexpected Result"));
+	}
 
-	auto unnamed = tstArgs.GetUnnamedArgs();
-	incrementIfFalse(errors, doCheck("tst", (unnamed.size() == 4), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (unnamed.at(0) == "call.exe"), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (unnamed.at(1) == "lose1"), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (unnamed.at(2) == "lose2"), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (unnamed.at(3) == "lose3"), "Unexpected Result"));
+	args.Reset();
+	{
+		auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1 unnamed anotherUnnamed");
+		incrementIfFalse(errors, doCheck("parse failed, because to many unnamed", (parseErr != nullptr), "Unexpected Result"));
+	}
 
-
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNthUnnamedArg(1, "default") == "lose1"), "Unexpected Result"));
-	incrementIfFalse(errors, doCheck("tst", (tstArgs.GetNthUnnamedArg(4, "default") == "default"), "Unexpected Result"));
+	args.Reset();
+	{
+		auto parseErr = args.Parse("call.exe -flag1 -list1 1 2 3 -param1 p1");
+		incrementIfFalse(errors, doCheck("parse failed, because to few unnamed", (parseErr != nullptr), "Unexpected Result"));
+	}
 
 	return errors;
 }
