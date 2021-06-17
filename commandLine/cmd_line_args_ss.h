@@ -16,44 +16,23 @@ namespace cjk
         using StringList = std::vector<std::string>;
 
     private:
-        struct FlagConfig
+        template<typename T>
+        struct NamedObject
         {
             std::string m_name;
-            bool m_value;
+            T* m_value;
 
-            FlagConfig(const char* name)
+            NamedObject(const char* name, T* value)
                 : m_name(name)
-                , m_value(false)
-            { }
-        };
-
-        struct ParamConfig
-        {
-            std::string m_name;
-            std::string m_value;
-
-            ParamConfig(const char* name)
-                : m_name(name)
-                , m_value()
-            { }
-        };
-
-        struct ListConfig
-        {
-            std::string m_name;
-            StringList m_value;
-
-            ListConfig(const char* name)
-                : m_name(name)
-                , m_value()
+                , m_value(value)
             { }
         };
 
     private:
-        std::vector<FlagConfig> m_flags;
-        std::vector<ParamConfig> m_params;
-        std::vector<ListConfig> m_namedLists;
-        StringList m_unnamedList;
+        std::vector<NamedObject<bool>> m_flags;
+        std::vector<NamedObject<std::string>> m_params;
+        std::vector<NamedObject<StringList>> m_namedLists;
+        StringList* m_unnamedList;
         size_t m_unnamedList_minimum = 0; //accept both: with and without call by default
         size_t m_unnamedList_maximum = 1; //accept both: with and without call by default
 
@@ -83,7 +62,7 @@ namespace cjk
 
                 if (flagItter != m_flags.end())
                 {
-                    flagItter->m_value = true;
+                    *(flagItter->m_value) = true;
                     m_parseState = ParseState::NoContext;
                 }
                 else if (paramItter != m_params.end())
@@ -106,14 +85,14 @@ namespace cjk
                 switch (m_parseState)
                 {
                 case ParseState::NoContext:
-                    m_unnamedList.emplace_back(spacelessSection);
+                    m_unnamedList->emplace_back(spacelessSection);
                     break;
                 case ParseState::ParamContext:
-                    m_selectedParam->m_value = spacelessSection;
+                    *(m_selectedParam->m_value) = spacelessSection;
                     m_parseState = ParseState::NoContext;
                     break;
                 case ParseState::ListContext:
-                    m_selectedlist->m_value.emplace_back(spacelessSection);
+                    m_selectedlist->m_value->emplace_back(spacelessSection);
                     break;
                 }
             }
@@ -123,47 +102,46 @@ namespace cjk
 
         [[nodiscard]] const char* ValidateUnnamedList()
         {
-            if (m_unnamedList.size() > m_unnamedList_maximum) return "UnnamedList is too long";
-            if (m_unnamedList.size() < m_unnamedList_minimum) return "UnnamedList is too short";
+            if (m_unnamedList->size() > m_unnamedList_maximum) return "UnnamedList is too long";
+            if (m_unnamedList->size() < m_unnamedList_minimum) return "UnnamedList is too short";
             return nullptr;
         }
 
+        void ResetvaluePtrs()
+        {
+            for (auto& e : m_flags) *(e.m_value) = false;
+            for (auto& e : m_params) e.m_value->clear();
+            for (auto& e : m_namedLists) e.m_value->clear();
+            m_unnamedList->clear();
+        }
+
     public:
-        CmdLineArgsSS(size_t reservedFlags, size_t reservedParams, size_t reservedLists)
+
+        void ConfigureFlag(const char* name, bool* valuePtr)
         {
-            //failing to reserve enough during construcion will result in invalidated refernces making the result useless
-            m_flags.reserve(reservedFlags);
-            m_params.reserve(reservedParams);
-            m_namedLists.reserve(reservedLists);
+            m_flags.emplace_back(name, valuePtr);
         }
 
-        bool& ConfigureFlag(const char* name)
+        void ConfigureParam(const char* name, std::string* valuePtr)
         {
-            m_flags.emplace_back(name);
-            return m_flags.back().m_value;
+            m_params.emplace_back(name, valuePtr);
         }
 
-        std::string& ConfigureParam(const char* name)
+        void ConfigureNamedList(const char* name, StringList* valuePtr)
         {
-            m_params.emplace_back(name);
-            return m_params.back().m_value;
+            m_namedLists.emplace_back(name, valuePtr);
         }
 
-        StringList& ConfigureNamedList(const char* name)
-        {
-            m_namedLists.emplace_back(name);
-            return m_namedLists.back().m_value;
-        }
-
-        StringList& ConfigureUnnamedList(size_t minimumLength, size_t maximumLength)
+        void ConfigureUnnamedList(size_t minimumLength, size_t maximumLength, StringList* valuePtr)
         {
             m_unnamedList_minimum = minimumLength;
             m_unnamedList_maximum = maximumLength;
-            return m_unnamedList;
+            m_unnamedList = valuePtr;
         }
 
         [[nodiscard]] const char* Parse(const std::vector<std::string>& rawArgs)
         {
+            ResetvaluePtrs();
             for (auto& s : rawArgs)
             {
                 auto res = ParseSection(s.c_str());
@@ -181,6 +159,7 @@ namespace cjk
 
         [[nodiscard]] const char* Parse(int argc, const char* argv[])
         {
+            ResetvaluePtrs();
             for (int i = 0; i < argc; i++)
             {
                 auto res = ParseSection(argv[i]);
@@ -189,13 +168,5 @@ namespace cjk
             }
             return ValidateUnnamedList();
         };
-
-        void Reset()
-        {
-            for (auto& e : m_flags) e.m_value = false;
-            for (auto& e : m_params) e.m_value.clear();
-            for (auto& e : m_namedLists) e.m_value.clear();
-            m_unnamedList.clear();
-        }
     };
 }
