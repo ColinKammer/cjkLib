@@ -9,4 +9,14 @@ namespace cjk
     {
         destination.insert(destination.end(), source.begin(), source.end());
     }
+
+    template<typename T>
+    std::vector<T*> createPointerVector(std::vector<T>& pointedToObjects)
+    {
+        std::vector<T*> retVal;
+        retVal.reserve(pointedToObjects.size());
+        for(auto& src : pointedToObjects)
+            retVal.push_back(&src);
+        return retVal;
+    }
 }
